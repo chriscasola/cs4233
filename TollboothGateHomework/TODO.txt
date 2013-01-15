@@ -1,3 +1,17 @@
+User Story 5:
+-------------
+- Tell the system to automatically close a Tollbooth gate after some time passed after being opened
+X When gate is initialized/configured I should specify time to elapse after opening to close
+X If no time provided gate should remain open indefinitely (or until explicitly closed)
+
+User Story 4:
+-------------
+X I should be able to activate and deactivate a gate
+X When a gate is deactivated it should not respond to messages except to reactivate or get state
+X When a gate is activated it should be paced in a closed state
+X A deactivated gate should return state DEACTIVATED
+X An error should occur when activating an already activated gate
+
 User Story 3:
 -------------
 X Create a TollboothGate and make sure that it is closed after opening.

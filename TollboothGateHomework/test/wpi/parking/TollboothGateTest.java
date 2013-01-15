@@ -21,15 +21,92 @@ import wpi.parking.hw.*;
 public class TollboothGateTest
 {
 	private TestGateController controller;
+	private TollboothGate gate;
 	
 	/**
 	 * Create the gate controller that we will use in the tests.
+	 * @throws WPIPSException 
 	 */
 	@Before
-	public void setup()
+	public void setup() throws WPIPSException
 	{
 		controller = new TestGateController();
+		gate = new TollboothGate("gate1", controller);
 	}
+	
+	@Test
+	public void specifyGateCloseDelay() throws WPIPSException
+	{
+		final TollboothGate gate = new TollboothGate("gate1", controller, 5);
+		assertEquals(5, gate.getDelayBeforeClose());
+	}
+	
+	/**
+	 * A gate should remain open indefinitely by default
+	 */
+	@Test
+	public void gateShouldRemainOpenByDefault()
+	{
+		assertEquals(0, gate.getDelayBeforeClose());
+	}
+	
+	/**
+	 * A deactivated gate should not respond to open messages
+	 * @throws WPIPSException
+	 */
+	@Test
+	public void deactivatedGateShouldIgnoreOpen() throws WPIPSException
+	{
+		gate.deactivate();
+		gate.open();
+		assertEquals(TollboothGate.TollboothGateState.DEACTIVATED, gate.getState());
+	}
+	
+	/**
+	 * A deactivated gate should not respond to close messages
+	 * @throws WPIPSException
+	 */
+	@Test
+	public void deactivatedGateShouldIgnoreClose() throws WPIPSException
+	{
+		gate.deactivate();
+		gate.close();
+		assertEquals(TollboothGate.TollboothGateState.DEACTIVATED, gate.getState());
+	}
+	
+	/**
+	 * Activating an active gate should cause an exception
+	 * @throws WPIPSException
+	 */
+	@Test(expected=WPIPSException.class)
+	public void activateAnActivatedGate() throws WPIPSException
+	{
+		gate.activate();
+	}
+	
+	/**
+	 * Activate a deactivated gate. The gate should be put in the closed state.
+	 * @throws WPIPSException
+	 */
+	@Test
+	public void activateADeactivatedGate() throws WPIPSException
+	{
+		gate.deactivate();
+		gate.activate();
+		assertEquals(TollboothGate.TollboothGateState.CLOSED, gate.getState());
+	}
+	
+	/**
+	 * Deactivate a closed gate, this should make the gate deactivated
+	 * @throws WPIPSException
+	 */
+	@Test
+	public void deactivateAnActiveGate() throws WPIPSException
+	{
+		gate.deactivate();
+		assertEquals(TollboothGate.TollboothGateState.DEACTIVATED, gate.getState());
+	}
+	
 	/**
 	 * Ensure that an initialized tollbooth gate is closed.
 	 * @throws WPIPSException
@@ -37,7 +114,6 @@ public class TollboothGateTest
 	@Test
 	public void initializedTollboothGateIsClosed() throws WPIPSException
 	{
-		final TollboothGate gate = new TollboothGate("gate1", controller);
 		assertNotNull(gate);
 		assertEquals(TollboothGate.TollboothGateState.CLOSED, gate.getState());
 	}
@@ -69,7 +145,6 @@ public class TollboothGateTest
 	@Test
 	public void openAClosedGateShouldGiveAnOpenState() throws WPIPSException
 	{
-		final TollboothGate gate = new TollboothGate("gate1", controller);
 		assertEquals(TollboothGate.TollboothGateState.OPEN, gate.open());
 		assertEquals(TollboothGate.TollboothGateState.OPEN, gate.getState());
 	}
@@ -81,7 +156,6 @@ public class TollboothGateTest
 	@Test
 	public void closeAnOpenGateShouldGiveAClosedState() throws WPIPSException
 	{
-		final TollboothGate gate = new TollboothGate("gate1", controller);
 		gate.open();
 		assertEquals(TollboothGate.TollboothGateState.CLOSED, gate.close());
 		assertEquals(TollboothGate.TollboothGateState.CLOSED, gate.getState());

@@ -19,9 +19,10 @@ import wpi.parking.hw.TollboothGateController;
  */
 public class TollboothGate
 {
-	public enum TollboothGateState { UNKNOWN, OPEN, CLOSED };
+	public enum TollboothGateState { UNKNOWN, OPEN, CLOSED, DEACTIVATED };
 	private final TollboothGateController controller;
 	private TollboothGateState state;
+	private int delayBeforeClose;
 	
 	/**
 	 * Default constructor.
@@ -37,6 +38,21 @@ public class TollboothGate
 		}
 		this.controller = controller;
 		state = TollboothGateState.CLOSED;
+		delayBeforeClose = 0;
+	}
+	
+	/**
+	 * Constructor that allows specification of the delay in seconds before the gate should close
+	 * 
+	 * @param id the tollbooth gate's ID.
+	 * @param controller the hardware tollbooth gate controller for this gate
+	 * @param delayBeforeClose the delay in seconds before an open gate should close
+	 * @throws WPIPSException if there are any errors that occur during the initialization
+	 */
+	public TollboothGate(String id, TollboothGateController controller, int delayBeforeClose) throws WPIPSException
+	{
+		this(id, controller);
+		this.delayBeforeClose = delayBeforeClose;
 	}
 	
 	/**
@@ -46,12 +62,14 @@ public class TollboothGate
 	 */
 	public TollboothGateState open() throws WPIPSException
 	{
-		try {
-			controller.open();
-			state = TollboothGateState.OPEN;
-		} catch (WPIPSException e) {
-			state = TollboothGateState.UNKNOWN;
-			throw e;
+		if (state != TollboothGateState.DEACTIVATED) {
+			try {
+				controller.open();
+				state = TollboothGateState.OPEN;
+			} catch (WPIPSException e) {
+				state = TollboothGateState.UNKNOWN;
+				throw e;
+			}
 		}
 		return state;
 	}
@@ -63,22 +81,55 @@ public class TollboothGate
 	 */
 	public TollboothGateState close() throws WPIPSException
 	{
-		try {
-			controller.close();
-			state = TollboothGateState.CLOSED;
-		} catch (WPIPSException e) {
-			state = TollboothGateState.UNKNOWN;
-			throw e;
+		if (state != TollboothGateState.DEACTIVATED) {
+			try {
+				controller.close();
+				state = TollboothGateState.CLOSED;
+			} catch (WPIPSException e) {
+				state = TollboothGateState.UNKNOWN;
+				throw e;
+			}
 		}
 		return state;
 	}
 	
 	/**
-	 * Get the tollbooth gate state.
+	 * Deactivate the gate
+	 * 
+	 */
+	public void deactivate()
+	{
+		state = TollboothGateState.DEACTIVATED;
+	}
+	
+	/**
+	 * Activate the gate and close it.
+	 * @throws WPIPSException 
+	 */
+	public void activate() throws WPIPSException
+	{
+		if (state == TollboothGateState.DEACTIVATED) {
+			state = TollboothGateState.UNKNOWN;
+			close();
+		}
+		else {
+			throw new WPIPSException("You cannot activate an already active gate.");
+		}
+	}
+	
+	/**
+	 * @return the tollbooth gate state.
 	 */
 	public TollboothGateState getState()
 	{
 		return state;
 	}
 	
+	/**
+	 * @return the delay in seconds before the toolbooth gate will close
+	 */
+	public int getDelayBeforeClose()
+	{
+		return delayBeforeClose;
+	}
 }
