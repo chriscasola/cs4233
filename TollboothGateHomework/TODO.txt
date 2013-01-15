@@ -1,6 +1,6 @@
 User Story 5:
 -------------
-- Tell the system to automatically close a Tollbooth gate after some time passed after being opened
+X Tell the system to automatically close a Tollbooth gate after some time passed after being opened
 X When gate is initialized/configured I should specify time to elapse after opening to close
 X If no time provided gate should remain open indefinitely (or until explicitly closed)
 

@@ -34,6 +34,25 @@ public class TollboothGateTest
 		gate = new TollboothGate("gate1", controller);
 	}
 	
+	/**
+	 * A gate should close automatically after a given delay
+	 * @throws WPIPSException
+	 * @throws InterruptedException
+	 */
+	@Test
+	public void gateClosesAutomaticallyAfterDelay() throws WPIPSException, InterruptedException {
+		final TollboothGate gate = new TollboothGate("gate1", controller, 1);
+		gate.open();
+		Thread.sleep(500);
+		assertEquals(TollboothGate.TollboothGateState.OPEN, gate.getState());
+		Thread.sleep(700);
+		assertEquals(TollboothGate.TollboothGateState.CLOSED, gate.getState());
+	}
+	
+	/**
+	 * Ensure a gate close delay can be specified
+	 * @throws WPIPSException
+	 */
 	@Test
 	public void specifyGateCloseDelay() throws WPIPSException
 	{

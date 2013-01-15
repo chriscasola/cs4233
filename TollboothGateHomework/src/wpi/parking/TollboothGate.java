@@ -8,6 +8,8 @@
 
 package wpi.parking;
 
+import java.util.Timer;
+
 import wpi.parking.hw.TollboothGateController;
 
 /**
@@ -22,8 +24,8 @@ public class TollboothGate
 	public enum TollboothGateState { UNKNOWN, OPEN, CLOSED, DEACTIVATED };
 	private final TollboothGateController controller;
 	private TollboothGateState state;
-	private int delayBeforeClose;
-	
+	private final int delayBeforeClose;
+
 	/**
 	 * Default constructor.
 	 *
@@ -33,14 +35,9 @@ public class TollboothGate
 	 */
 	public TollboothGate(String id, TollboothGateController controller) throws WPIPSException
 	{
-		if (id == null || id.equals("")) {
-			throw new WPIPSException("Tollbooth gate ID cannot be blank");
-		}
-		this.controller = controller;
-		state = TollboothGateState.CLOSED;
-		delayBeforeClose = 0;
+		this(id, controller, 0);
 	}
-	
+
 	/**
 	 * Constructor that allows specification of the delay in seconds before the gate should close
 	 * 
@@ -49,12 +46,19 @@ public class TollboothGate
 	 * @param delayBeforeClose the delay in seconds before an open gate should close
 	 * @throws WPIPSException if there are any errors that occur during the initialization
 	 */
-	public TollboothGate(String id, TollboothGateController controller, int delayBeforeClose) throws WPIPSException
+	public TollboothGate(String id, 
+			TollboothGateController controller, 
+			int delayBeforeClose) 
+					throws WPIPSException
 	{
-		this(id, controller);
+		if (id == null || id.equals("")) {
+			throw new WPIPSException("Tollbooth gate ID cannot be blank");
+		}
+		this.controller = controller;
+		state = TollboothGateState.CLOSED;
 		this.delayBeforeClose = delayBeforeClose;
 	}
-	
+
 	/**
 	 * Open the gate.
 	 * @return the gate's state. It will be OPEN or UNKNOWN if there was a problem.
@@ -70,10 +74,13 @@ public class TollboothGate
 				state = TollboothGateState.UNKNOWN;
 				throw e;
 			}
+			if (delayBeforeClose > 0) {
+				new Timer().schedule(new TollboothGateCloser(this), delayBeforeClose * 1000);
+			}
 		}
 		return state;
 	}
-	
+
 	/**
 	 * Close the gate.
 	 * @return the gate's state. It will be CLOSED or UNKNOWN if there was a problem.
@@ -92,7 +99,7 @@ public class TollboothGate
 		}
 		return state;
 	}
-	
+
 	/**
 	 * Deactivate the gate
 	 * 
@@ -101,7 +108,7 @@ public class TollboothGate
 	{
 		state = TollboothGateState.DEACTIVATED;
 	}
-	
+
 	/**
 	 * Activate the gate and close it.
 	 * @throws WPIPSException 
@@ -116,7 +123,7 @@ public class TollboothGate
 			throw new WPIPSException("You cannot activate an already active gate.");
 		}
 	}
-	
+
 	/**
 	 * @return the tollbooth gate state.
 	 */
@@ -124,7 +131,7 @@ public class TollboothGate
 	{
 		return state;
 	}
-	
+
 	/**
 	 * @return the delay in seconds before the toolbooth gate will close
 	 */
