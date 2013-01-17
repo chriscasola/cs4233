@@ -77,8 +77,7 @@ public class TollboothGate
 				throw e;
 			}
 			if (delayBeforeClose > 0) {
-				gateTimer.cancel();
-				gateTimer = new Timer();
+				resetGateTimer();
 				gateTimer.schedule(new TollboothGateCloser(this), delayBeforeClose * 1000);
 			}
 		}
@@ -99,7 +98,7 @@ public class TollboothGate
 			try {
 				controller.close();
 				state = TollboothGateState.CLOSED;
-				gateTimer.cancel();
+				resetGateTimer();
 			} catch (WPIPSException e) {
 				state = TollboothGateState.UNKNOWN;
 				throw e;
@@ -121,7 +120,7 @@ public class TollboothGate
 	{
 		if (state != TollboothGateState.DEACTIVATED) {
 			state = TollboothGateState.DEACTIVATED;
-			gateTimer.cancel();
+			resetGateTimer();
 			return state;
 		}
 		else {
@@ -161,5 +160,15 @@ public class TollboothGate
 	public int getDelayBeforeClose()
 	{
 		return delayBeforeClose;
+	}
+	
+	/**
+	 * Resets the gate timer
+	 */
+	private void resetGateTimer() {
+		if (gateTimer != null) {
+			gateTimer.cancel();
+		}
+		gateTimer = new Timer();
 	}
 }
