@@ -29,6 +29,8 @@ public class TollboothGateCloser extends TimerTask {
 	}
 
 	/**
+	 * Called by the timer to close the gate.
+	 * 
 	 * @see java.util.TimerTask#run()
 	 */
 	@Override
@@ -36,8 +38,15 @@ public class TollboothGateCloser extends TimerTask {
 		try {
 			gate.close();
 		} catch (WPIPSException e) {
-			// Error occurred when automatically closing the gate.
-			e.printStackTrace();
+			// Error occurred when automatically closing the gate, so deactivate it.
+			try {
+				gate.deactivate();
+			} catch (WPIPSException e1) {
+				// The gate must already be deactivated, but make sure
+				if (gate.getState() != TollboothGate.TollboothGateState.DEACTIVATED) {
+					throw new IllegalStateException("The gate failed to deactivate", e1);
+				}
+			}
 		}
 	}
 

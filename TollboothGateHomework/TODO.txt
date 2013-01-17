@@ -1,3 +1,10 @@
+X Deal with multiple calls to open() on a gate that automatically closes
+X Handle the exception in the timer's run() method by deactivating the gate
+X Throw an exception when if open(), close(), or deactivate() is called on an already deactivated gate
+X Make sure all exceptions being thrown have messages
+X have activate and deactivate return the resulting state
+
+
 User Story 5:
 -------------
 X Tell the system to automatically close a Tollbooth gate after some time passed after being opened

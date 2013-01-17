@@ -24,6 +24,7 @@ public class TollboothGate
 	public enum TollboothGateState { UNKNOWN, OPEN, CLOSED, DEACTIVATED };
 	private final TollboothGateController controller;
 	private TollboothGateState state;
+	private Timer gateTimer;
 	private final int delayBeforeClose;
 
 	/**
@@ -57,6 +58,7 @@ public class TollboothGate
 		this.controller = controller;
 		state = TollboothGateState.CLOSED;
 		this.delayBeforeClose = delayBeforeClose;
+		gateTimer = new Timer();
 	}
 
 	/**
@@ -75,8 +77,13 @@ public class TollboothGate
 				throw e;
 			}
 			if (delayBeforeClose > 0) {
-				new Timer().schedule(new TollboothGateCloser(this), delayBeforeClose * 1000);
+				gateTimer.cancel();
+				gateTimer = new Timer();
+				gateTimer.schedule(new TollboothGateCloser(this), delayBeforeClose * 1000);
 			}
+		}
+		else {
+			throw new WPIPSException("A deactivated gate cannot be opened");
 		}
 		return state;
 	}
@@ -92,32 +99,48 @@ public class TollboothGate
 			try {
 				controller.close();
 				state = TollboothGateState.CLOSED;
+				gateTimer.cancel();
 			} catch (WPIPSException e) {
 				state = TollboothGateState.UNKNOWN;
 				throw e;
 			}
+		}
+		else {
+			throw new WPIPSException("A deactivated gate cannot be closed");
 		}
 		return state;
 	}
 
 	/**
 	 * Deactivate the gate
+	 * @throws WPIPSException 
 	 * 
+	 * @return The new state of the gate
 	 */
-	public void deactivate()
+	public TollboothGateState deactivate() throws WPIPSException
 	{
-		state = TollboothGateState.DEACTIVATED;
+		if (state != TollboothGateState.DEACTIVATED) {
+			state = TollboothGateState.DEACTIVATED;
+			gateTimer.cancel();
+			return state;
+		}
+		else {
+			throw new WPIPSException("This gate is already deactivated");
+		}
 	}
 
 	/**
 	 * Activate the gate and close it.
-	 * @throws WPIPSException 
+	 * @throws WPIPSException
+	 * 
+	 * @return The new state of the gate
 	 */
-	public void activate() throws WPIPSException
+	public TollboothGateState activate() throws WPIPSException
 	{
 		if (state == TollboothGateState.DEACTIVATED) {
 			state = TollboothGateState.UNKNOWN;
 			close();
+			return state;
 		}
 		else {
 			throw new WPIPSException("You cannot activate an already active gate.");
